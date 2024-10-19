@@ -16,3 +16,11 @@
 .react-calendar__navigation__label__labelText{
   font-weight: 600;
 }
+
+.rbc-btn-group:first-child{
+  display: none !important;
+}
+
+.rbc-toolbar-label{
+  text-align: right !important;
+}
