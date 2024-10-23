@@ -1,3 +1,4 @@
+'use client'
 import TableSearch from '@/components/TableSearch';
 import React from 'react'
 import Image from 'next/image';
@@ -5,6 +6,7 @@ import Pagination from '@/components/Pagination';
 import Table from '@/components/Table';
 import Link from 'next/link';
 import { parentsData, role} from '@/lib/data';
+import FormModal from '@/components/FormModal';
 
 
 type Parent = {
@@ -60,17 +62,16 @@ const ParentListPage = () => {
 
       <td>
         <div className=' flex items-center gap-2'>
-          <Link href={`/list/teachers/${item.id}`} >
-            <button className='w-7 h-7 flex items-center justify-center rounded-full bg-sky'>
-              <Image src='/edit.png' alt='view butto' height={16} width={16} />
-            </button>
-          </Link>
-
-          {role === "admin" && (<button className='w-7 h-7 flex items-center justify-center 
-          rounded-full bg-purple'>
-            <Image src='/delete.png' alt='view butto' height={16} width={16} />
-          </button>)
-          }
+          {role === "admin" && (
+          //   <button className='w-7 h-7 flex items-center justify-center 
+          // rounded-full bg-purple'>
+          //   <Image src='/delete.png' alt='view butto' height={16} width={16} />
+          // </button>
+          <>
+          <FormModal table='parent' type='update' data={item}/>
+          <FormModal table='parent' type='delete' id={item.id}/>
+          </>
+          )}
 
         </div>
 
@@ -96,12 +97,15 @@ const ParentListPage = () => {
             </button>
 
             <button className='w-8 h-8 flex items-center justify-center rounded-full bg-yellow'>
-              <Image src='/search.png' alt='filter button' width={14} height={14} />
+              <Image src='/sort.png' alt='filter button' width={14} height={14} />
             </button>
 
-            {role === 'admin' && (<button className='w-8 h-8 flex items-center justify-center rounded-full bg-yellow'>
-              <Image src='/plus.png' alt='filter button' width={14} height={14} />
-            </button>)}
+            {role === 'admin' && (
+            //   <button className='w-8 h-8 flex items-center justify-center rounded-full bg-yellow'>
+            //   <Image src='/plus.png' alt='filter button' width={14} height={14} />
+            // </button>
+            <FormModal table='parent' type='create'/>
+          )}
           </div>
         </div>
       </div>

@@ -1,53 +1,56 @@
-'use client'
 import TableSearch from '@/components/TableSearch';
 import React from 'react'
 import Image from 'next/image';
 import Pagination from '@/components/Pagination';
 import Table from '@/components/Table';
 import Link from 'next/link';
-import { eventsData, role } from '@/lib/data';
+import {resultsData, role } from '@/lib/data';
 import FormModal from '@/components/FormModal';
 
 
 
-type Event = {
+type Result = {
     id: number;
-    title: string;
+    subject: string;
     class: string;
     teacher: string;
+    student: string;
+    type: "exam" | "assignment";
     date: string;
-    startTime: number;
-    endTime: number;
-
+    score: number;
 }
 
 
 const columns = [
     {
-        header: 'Title',
-        accessor: "title",
+        header: 'Subject Name',
+        accessor: "name",
+    },
+    {
+        header: 'Student',
+        accessor: "student",
+
+    },
+    {
+        header: 'Score',
+        accessor: "score",
+        className: "hidden lg:table-cell"
+    },
+    {
+        header: "Teacher",
+        accessor: "teacher",
+        className: "hidden lg:table-cell"
     },
     {
         header: 'Class',
         accessor: "class",
-
+        className: "hidden lg:table-cell",
     },
     {
         header: 'Date',
         accessor: "date",
-        className: "hidden lg:table-cell"
-    },
-    {
-        header: "Start time",
-        accessor: "startTime",
-        className: "hidden lg:table-cell"
-    },
-    {
-        header: 'End Time',
-        accessor: "ebdTime",
         className: "hidden lg:table-cell",
     },
-
     {
         header: 'Actions',
         accessor: "action"
@@ -55,23 +58,25 @@ const columns = [
 ];
 
 
-const EventListPage = () => {
+const ResultListPage = () => {
 
-    const renderRow = (item: Event) => (
+    const renderRow = (item: Result) => (
         <tr key={item.id} className='border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purpleLight'>
-            <td className='flex items-center gap-4 p-4'>{item.title}</td>
-            <td>{item.class}</td>
+            <td className='flex items-center gap-4 p-4'>{item.subject}</td>
+            <td>{item.student}</td>
+            <td className='hidden md:table-cell'>{item.score}</td>
+            <td className='hidden md:table-cell'>{item.teacher}</td>
+            <td className='hidden md:table-cell'>{item.class}</td>
             <td className='hidden md:table-cell'>{item.date}</td>
-            <td className='hidden md:table-cell'>{item.startTime}</td>
-            <td className='hidden md:table-cell'>{item.endTime}</td>
+
 
             <div className=' flex items-center gap-2'>
 
                 {role === "admin" && (
-                    <>
-                        <FormModal table='event' type='update' data={item} />
-                        <FormModal table='event' type='delete' id={item.id} />
-                    </>
+                       <>
+                       <FormModal table='result' type='update' data={item} />
+                       <FormModal table='result' type='delete' id={item.id} />
+                   </>
                 )}
 
             </div>
@@ -82,7 +87,7 @@ const EventListPage = () => {
         <div className='bg-white p-4  rounded-md flex-1 m-4 mt-0'>
             {/* TOP SECTION  */}
             <div className='flex items-center justify-between'>
-                <h1 className='hidden md:block text-lg font-semibold'>All Events</h1>
+                <h1 className='hidden md:block text-lg font-semibold'>All Results</h1>
 
                 {/* SEARCH BAR  */}
                 <div className='flex flex-col md:flex-row items-center gap-4  w-full md:w-auto'>
@@ -100,14 +105,14 @@ const EventListPage = () => {
                         </button>
 
                         {role === 'admin' && (
-                            <FormModal table='event' type='create' />
+                           <FormModal table='result' type='create'/>
                         )}
                     </div>
                 </div>
             </div>
             {/* LIST  */}
             <div className=''>
-                <Table columns={columns} renderRow={renderRow} data={eventsData} />
+                <Table columns={columns} renderRow={renderRow} data={resultsData} />
             </div>
             {/* PAGINATION  */}
             <Pagination />
@@ -115,4 +120,4 @@ const EventListPage = () => {
     )
 }
 
-export default EventListPage;
+export default ResultListPage;
