@@ -1,5 +1,6 @@
 import { Day, PrismaClient, UserSex } from "@prisma/client";
 
+//seeding the databse for the dummy  data 
 const prisma = new PrismaClient();
 
 async function main() {

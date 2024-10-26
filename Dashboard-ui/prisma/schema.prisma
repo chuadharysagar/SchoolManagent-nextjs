@@ -9,7 +9,9 @@ datasource db {
 }
 
 //define the table 
+// npx prisma 
 // to covert this code into relational databse use "npx prisma migrate dev --name init"
+// sedding " create a seed.ts" run npx prisma db seed
 
 model Admin {
   id      String @id
