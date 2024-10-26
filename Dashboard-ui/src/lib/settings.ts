@@ -1,0 +1,1 @@
+export const ITEM_PERR_PAGE=10;
