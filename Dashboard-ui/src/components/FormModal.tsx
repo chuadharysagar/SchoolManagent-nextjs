@@ -1,7 +1,26 @@
 'use client'
 import React, { useState } from 'react'
 import Image from 'next/image';
-import TeacherForm from './forms/TeacherForm';
+import dynamic from 'next/dynamic';
+// import TeacherForm from './forms/TeacherForm';
+// import StudentForm from './forms/StudentFrom';
+
+// for dynamic loading 
+const TeacherForm = dynamic(()=>import("./forms/TeacherForm"),{
+    loading:()=><h1>Loading....</h1>
+})
+
+const StudentForm = dynamic(()=>import("./forms/StudentFrom"),{
+    loading:()=><h1>Loading....</h1>
+})
+
+// for the conditional rendering
+const forms: {
+    [key: string]: (type: "create" | "update", data?: any) => JSX.Element
+} = {
+    teacher: (type, data) => <TeacherForm type={type} data={data} />,
+    student: (type, data) => <StudentForm type={type} data={data} />,
+};
 
 const FormModal = ({ table, type, data, id }: {
     table: | "teacher"
@@ -30,13 +49,15 @@ const FormModal = ({ table, type, data, id }: {
     const [open, setOpen] = useState(false);
 
     //for deleeting any item
-    const Form =()=>{
+    const Form = () => {
         return type === "delete" && id ? <form action="" className='p-4 flex flex-col gap-4'>
             <span className='text-center font-medium'>All data will be lost. Are you sure you want to delete {table}?</span>
             <button className='bg-red-700 text-white py-2 px-4 rounded-md border-none
             w-max self-center
             '>Delete</button>
-        </form>:<TeacherForm type='update' data={data}/>
+        </form> : type === "create" || type === "update" ? (
+            forms[table](type, data)
+        ) : ("Form not found !")
     }
 
 
@@ -53,8 +74,8 @@ const FormModal = ({ table, type, data, id }: {
              flex items-center justify-center'>
                 <div className='bg-white p-4 rounded-md relative w-[90%] md:w-[70%] lg:w-[60%] xl:w-[50%]
                  2xl:w-[40%]'>
-                    <Form/>
-                    <div className='absolute top-4 right-4 cursor-pointer' onClick={()=>setOpen(false)}>
+                    <Form />
+                    <div className='absolute top-4 right-4 cursor-pointer' onClick={() => setOpen(false)}>
                         <Image src='/close.png' alt='close button' width={14} height={14} />
                     </div>
                 </div>

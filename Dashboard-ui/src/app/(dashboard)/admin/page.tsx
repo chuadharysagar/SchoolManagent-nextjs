@@ -31,14 +31,14 @@ const AdminPage = () => {
 
           {/* attendecne chart */}
           <div className='w-full lg:w-2/3 h-[450px]'>
-             <AttendenceChart/>
+            <AttendenceChart />
           </div>
 
         </div>
 
         {/* bottom chart finace chart  */}
         <div className='w-full h-[500px]'>
-            <FinanceChart/>
+          <FinanceChart />
         </div>
       </div>
 
@@ -46,9 +46,9 @@ const AdminPage = () => {
 
       {/* right menu  */}
       <div className='w-full lg:w-1/3 flex flex-col gap-8'>
-       {/* calander part  */}
-       <EventCalander/>
-       <Annoucement/>
+        {/* calander part  */}
+        <EventCalander />
+        <Annoucement />
       </div>
 
     </div>
