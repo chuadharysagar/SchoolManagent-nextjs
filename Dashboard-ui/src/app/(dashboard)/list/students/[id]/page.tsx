@@ -113,7 +113,7 @@ const SingleStudentPage = () => {
         {/* BOOTOM SECTION  */}
         <div className='mt-4 bg-white rounded-md h-[800px]' >
           <h1>Student&apos;s Schedule</h1>
-          <BigCalendar/>
+          <BigCalendar />
         </div>
 
       </div>
@@ -121,18 +121,19 @@ const SingleStudentPage = () => {
 
       {/* RIGHT  */}
       <div className='w-full xl:w-1/3 flex flex-col gap-4'>
-         <div className='bg-white p-4 rounded-md'>
-             <h1 className='text-xl font-semibold'>Shortcuts</h1>
-             <div className='mt-4 flex gap-4 flex-wrap text-xs text-gray-500'>
-               <Link className='p-3 rounded-md bg-skyLight' href="/" >Student&apos;s Lessons</Link>
-               <Link className='p-3 rounded-md bg-purpleLight' href="/" >Student&apos;s Teachers</Link>
-               <Link className='p-3 rounded-md bg-yellowLight' href="/" >Student&apos;s Results</Link>
-               <Link className='p-3 rounded-md bg-pink-50' href="/" >Student&apos;s Exams</Link>
-               <Link className='p-3 rounded-md bg-skyLight' href="/" >Student&apos;s Assignnments</Link>
-             </div>
-         </div>
-         <Performance/>
-        <Annoucement/>
+        <div className='bg-white p-4 rounded-md'>
+          <h1 className='text-xl font-semibold'>Shortcuts</h1>
+          <div className='mt-4 flex gap-4 flex-wrap text-xs text-gray-500'>
+            <Link className='p-3 rounded-md bg-skyLight' href="/" >Student&apos;s Lessons</Link>
+            <Link className='p-3 rounded-md bg-purpleLight' href={`/list/teachers?classId =${2}`} >
+              Student&apos;s Teachers</Link>
+            <Link className='p-3 rounded-md bg-yellowLight' href="/" >Student&apos;s Results</Link>
+            <Link className='p-3 rounded-md bg-pink-50' href="/" >Student&apos;s Exams</Link>
+            <Link className='p-3 rounded-md bg-skyLight' href="/" >Student&apos;s Assignnments</Link>
+          </div>
+        </div>
+        <Performance />
+        <Annoucement />
       </div>
     </div>
   )
