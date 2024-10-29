@@ -11,6 +11,7 @@ import { Prisma } from '@prisma/client';
 import { date } from 'zod';
 
 
+// Custum type for the result table
 
 type ResultList = {
     id: number;
