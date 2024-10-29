@@ -6,12 +6,12 @@ import dynamic from 'next/dynamic';
 // import StudentForm from './forms/StudentFrom';
 
 // for dynamic loading 
-const TeacherForm = dynamic(()=>import("./forms/TeacherForm"),{
-    loading:()=><h1>Loading....</h1>
+const TeacherForm = dynamic(() => import("./forms/TeacherForm"), {
+    loading: () => <h1>Loading....</h1>
 })
 
-const StudentForm = dynamic(()=>import("./forms/StudentFrom"),{
-    loading:()=><h1>Loading....</h1>
+const StudentForm = dynamic(() => import("./forms/StudentFrom"), {
+    loading: () => <h1>Loading....</h1>
 })
 
 // for the conditional rendering
@@ -38,7 +38,7 @@ const FormModal = ({ table, type, data, id }: {
 
     type: "create" | "update" | "delete";
     data?: any;
-    id?: any;
+    id?: number | string;
 }) => {
 
     const size = type === "create" ? "w-8 h-8" : "w-7 h-7"
