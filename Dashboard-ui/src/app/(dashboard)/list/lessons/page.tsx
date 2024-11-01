@@ -3,64 +3,72 @@ import React from 'react'
 import Image from 'next/image';
 import Pagination from '@/components/Pagination';
 import Table from '@/components/Table';
-import { lessonsData, role } from '@/lib/data';
 import FormModal from '@/components/FormModal';
 import { ITEM_PERR_PAGE } from '@/lib/settings';
 import { Class, Lesson, Prisma, Subject, Teacher } from '@prisma/client';
 import prisma from '@/lib/prisma';
+import { auth } from '@clerk/nextjs/server';
 
 
 
 type LessonList = Lesson & { subject: Subject } & { class: Class } & { teacher: Teacher }
 
 
-const columns = [
-    {
-        header: 'Subject Name',
-        accessor: "name",
-    },
-    {
-        header: 'Class',
-        accessor: "class",
-
-    },
-    {
-        header: "Teacher",
-        accessor: "teacher",
-        className: "hidden lg:table-cell"
-    },
-    {
-        header: 'Actions',
-        accessor: "action"
-    }
-];
-
-
-const renderRow = (item: LessonList) => (
-    <tr key={item.id} className='border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purpleLight'>
-        <td className='flex items-center gap-4 p-4'>{item.subject.name}</td>
-        <td>{item.class.name}</td>
-        <td className='hidden md:table-cell'>{item.teacher.name + " " + item.teacher.surname}</td>
-
-        <div className=' flex items-center gap-2'>
-
-            {role === "admin" && (
-                <>
-                    <FormModal table='lesson' type='update' data={item} />
-                    <FormModal table='lesson' type='delete' id={item.id} />
-                </>
-
-            )}
-
-        </div>
-    </tr>
-)
-
 
 const LessonListPage = async ({ searchParams,
 }: {
     searchParams: { [key: string]: string | undefined };
 }) => {
+    // FETCH USER DATA 
+    const { userId, sessionClaims } = await auth();
+    const role = (searchParams?.metadata as { role?: string })?.role;
+    const currentUserId = userId;
+
+    // ALL THE COLUMNS HEADER 
+    const columns = [
+        {
+            header: 'Subject Name',
+            accessor: "name",
+        },
+        {
+            header: 'Class',
+            accessor: "class",
+
+        },
+        {
+            header: "Teacher",
+            accessor: "teacher",
+            className: "hidden lg:table-cell"
+        },
+        ...(role === "admin"?[{
+            header: 'Actions',
+            accessor: "action"
+        }]:[])
+    ];
+
+
+    // Render Row Functions 
+    const renderRow = (item: LessonList) => (
+        <tr key={item.id} className='border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purpleLight'>
+            <td className='flex items-center gap-4 p-4'>{item.subject.name}</td>
+            <td>{item.class.name}</td>
+            <td className='hidden md:table-cell'>{item.teacher.name + " " + item.teacher.surname}</td>
+
+            <div className=' flex items-center gap-2'>
+
+                {role === "admin" && (
+                    <>
+                        <FormModal table='lesson' type='update' data={item} />
+                        <FormModal table='lesson' type='delete' id={item.id} />
+                    </>
+
+                )}
+
+            </div>
+        </tr>
+    )
+
+    // QUERY PARAMS 
 
     const { page, ...queryParams } = searchParams;
     const p = page ? parseInt(page) : 1
@@ -78,9 +86,9 @@ const LessonListPage = async ({ searchParams,
                         query.teacherId = value;
                         break;
                     case "search":
-                        query.OR=[
-                            {subject:{name:{contains:value,mode:"insensitive"}}},
-                            {teacher:{name:{contains:value,mode:'insensitive'}}},
+                        query.OR = [
+                            { subject: { name: { contains: value, mode: "insensitive" } } },
+                            { teacher: { name: { contains: value, mode: 'insensitive' } } },
                         ];
                         break;
                     default:
@@ -133,7 +141,7 @@ const LessonListPage = async ({ searchParams,
                             <Image src='/filter.png' alt='filter button' width={14} height={14} />
                         </button>
 
-                        { role === 'admin' && (
+                        {role === 'admin' && (
                             <FormModal table='lesson' type='create' />
 
                         )}

@@ -3,63 +3,17 @@ import React from 'react'
 import Image from 'next/image';
 import Pagination from '@/components/Pagination';
 import Table from '@/components/Table';
-import { classesData, role, subjectsData, teachersData } from '@/lib/data';
 import FormModal from '@/components/FormModal';
 import { Class, Prisma, Teacher } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { ITEM_PERR_PAGE } from '@/lib/settings';
+import { auth } from '@clerk/nextjs/server';
 
 
-type ClassList = Class & { supervisor: Teacher}
-
-const columns = [
-    {
-        header: 'Class Name',
-        accessor: "name",
-    },
-    {
-        header: 'Capacity',
-        accessor: "capacity",
-        className: "hidden lg:table-cell"
-
-    },
-    {
-        header: "Grade",
-        accessor: "grade",
-        className: "hidden lg:table-cell"
-    },
-    {
-        header: "Supervisor",
-        accessor: "supervisor",
-        className: "hidden lg:table-cell"
-    },
-    {
-        header: 'Actions',
-        accessor: "action"
-    }
-];
+type ClassList = Class & { supervisor: Teacher }
 
 
-const renderRow = (item: ClassList) => (
-    <tr key={item.id} className='border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purpleLight'>
-        <td className='flex items-center gap-4 p-4'>{item.name}</td>
-        <td className='hidden md:table-cell'>{item.capacity}</td>
-        <td className='hidden md:table-cell'>{item.name[0]}</td>
-        <td className='hidden md:table-cell'>{item.supervisor.name +" "+item.supervisor.surname}</td>
 
-
-        <div className=' flex items-center gap-2'>
-            {role === "admin" && (
-                <>
-                    <FormModal table='class' type='update' data={item} />
-                    <FormModal table='class' type='delete' id={item.id} />
-                </>
-
-            )}
-
-        </div>
-    </tr>
-)
 
 
 
@@ -67,6 +21,65 @@ const ClassListPage = async ({ searchParams
 }: {
     searchParams: { [key: string]: string | undefined };
 }) => {
+
+    // FETCH THE USER ROLE AND THE OHTER USE INFO 
+    const { userId, sessionClaims } = await auth();
+    const role = (sessionClaims?.metadata as { role?: string })?.role;
+    const currentUserId = userId;
+
+    // COLUMNS 
+    const columns = [
+        {
+            header: 'Class Name',
+            accessor: "name",
+        },
+        {
+            header: 'Capacity',
+            accessor: "capacity",
+            className: "hidden lg:table-cell"
+
+        },
+        {
+            header: "Grade",
+            accessor: "grade",
+            className: "hidden lg:table-cell"
+        },
+        {
+            header: "Supervisor",
+            accessor: "supervisor",
+            className: "hidden lg:table-cell"
+        },
+        ...(role === "admin" ? [{
+            header: 'Actions',
+            accessor: "action"
+        }] : [])
+    ];
+
+
+    //  RENDER ROW FUNCTION 
+
+    const renderRow = (item: ClassList) => (
+        <tr key={item.id} className='border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purpleLight'>
+            <td className='flex items-center gap-4 p-4'>{item.name}</td>
+            <td className='hidden md:table-cell'>{item.capacity}</td>
+            <td className='hidden md:table-cell'>{item.name[0]}</td>
+            <td className='hidden md:table-cell'>{item.supervisor.name + " " + item.supervisor.surname}</td>
+
+
+            <div className=' flex items-center gap-2'>
+                {role === "admin" && (
+                    <>
+                        <FormModal table='class' type='update' data={item} />
+                        <FormModal table='class' type='delete' id={item.id} />
+                    </>
+
+                )}
+
+            </div>
+        </tr>
+    )
+
+    // data query form the backend database
 
     const { page, ...queryParams } = searchParams;
     const p = page ? parseInt(page) : 1
@@ -92,8 +105,7 @@ const ClassListPage = async ({ searchParams
     }
 
 
-
-    //fetch data 
+    //Fetch data Database
 
     const [data, count] = await prisma.$transaction([
         prisma.class.findMany({

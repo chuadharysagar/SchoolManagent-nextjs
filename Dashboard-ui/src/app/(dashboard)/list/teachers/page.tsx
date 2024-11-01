@@ -4,15 +4,25 @@ import Image from 'next/image';
 import Pagination from '@/components/Pagination';
 import Table from '@/components/Table';
 import Link from 'next/link';
-import { role, teachersData } from '@/lib/data';
 import FormModal from '@/components/FormModal';
 import { Subject, Teacher, Class, Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { ITEM_PERR_PAGE } from '@/lib/settings';
+import { auth } from '@clerk/nextjs/server';
 
 //import the type from prisma tables 
 type TeacherList = Teacher & { subjects: Subject[] } & { classes: Class[] }
 
+
+
+const TeacherListPage = async ({ searchParams
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) => {
+  const {sessionClaims} = await auth();
+  const role = (sessionClaims?.metadata as {role?:string})?.role;
+
+  //  ALL THE COLUMNS 
 const columns = [
   {
     header: 'Info',
@@ -43,16 +53,13 @@ const columns = [
     accessor: "address",
     className: "hidden lg:table-cell"
   },
-  {
+ ...(role === "admin" ? [{
     header: 'Actions',
     accessor: "action"
-  }
+  }]:[])
 ];
 
-
-
-
-
+// RENDER ROW FUNCTION 
 const renderRow = (item: TeacherList) => (
 
   <tr key={item.id} className='border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purpleLight'>
@@ -94,13 +101,6 @@ const renderRow = (item: TeacherList) => (
     </td>
   </tr>
 )
-
-
-
-const TeacherListPage = async ({ searchParams
-}: {
-  searchParams: { [key: string]: string | undefined };
-}) => {
 
   //fetch the dat from the server db
   // for including  the other table data which we have relatioship with include all the tabl

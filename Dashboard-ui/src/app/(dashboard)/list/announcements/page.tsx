@@ -1,65 +1,74 @@
 import TableSearch from '@/components/TableSearch';
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Image from 'next/image';
 import Pagination from '@/components/Pagination';
 import Table from '@/components/Table';
-import Link from 'next/link';
-import { announcementsData, eventsData, role } from '@/lib/data';
 import FormModal from '@/components/FormModal';
 import { Announcement, Class, Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { ITEM_PERR_PAGE } from '@/lib/settings';
+import { auth } from '@clerk/nextjs/server';
+
+
+type AnnouncemetList = Announcement & { class: Class }
 
 
 
-type AnnouncemetList = Announcement & {class:Class}
-
-
-const columns = [
-    {
-        header: 'Title',
-        accessor: "title",
-    },
-    {
-        header: 'Class',
-        accessor: "class",
-
-    },
-    {
-        header: 'Date',
-        accessor: "date",
-        className: "hidden lg:table-cell"
-    },
-    {
-        header: 'Actions',
-        accessor: "action"
-    }
-];
-
-
-const renderRow = (item: AnnouncemetList) => (
-    <tr key={item.title} className='border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purpleLight'>
-        <td className='flex items-center gap-4 p-4'>{item.title}</td>
-        <td>{item.class.name}</td>
-        <td className='hidden md:table-cell'>{Intl.DateTimeFormat("en-us").format(item.date)}</td>
-
-        <div className=' flex items-center gap-2'>
-            {role === "admin" && (
-                <>
-                    <FormModal table='announcement' type='update' data={item} />
-                    <FormModal table='announcement' type='delete' id={item.id} />
-                </>
-            )}
-
-        </div>
-    </tr>
-)
-
-
-const AnnoucementListPage = async({ searchParams,
+const AnnoucementListPage = async ({ searchParams,
 }: {
     searchParams: { [key: string]: string | undefined };
 }) => {
+
+    // fetch the user role from the bakcend 
+    const { userId,sessionClaims } = await auth();
+    const role = (sessionClaims?.metadata as { role?: string })?.role;
+    const currentUserId = userId;
+
+    // Columns 
+    const columns = [
+        {
+            header: 'Title',
+            accessor: "title",
+        },
+        {
+            header: 'Class',
+            accessor: "class",
+
+        },
+        {
+            header: 'Date',
+            accessor: "date",
+            className: "hidden lg:table-cell"
+        },
+        ...(role === "admin" ? [{
+            header: 'Actions',
+            accessor: "action"
+        }] : [])
+    ];
+
+    // fetch role data from the usecontext api
+
+
+    const renderRow = (item: AnnouncemetList) => (
+        <tr key={item.title} className='border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purpleLight'>
+            <td className='flex items-center gap-4 p-4'>{item.title}</td>
+            <td>{item.class?.name || "-"}</td>
+            <td className='hidden md:table-cell'>{Intl.DateTimeFormat("en-us").format(item.date)}</td>
+
+            <div className=' flex items-center gap-2'>
+                {role === "admin" && (
+                    <>
+                        <FormModal table='announcement' type='update' data={item} />
+                        <FormModal table='announcement' type='delete' id={item.id} />
+                    </>
+                )}
+
+            </div>
+        </tr>
+    )
+
+    // fetching data for the table
+
     const { page, ...queryParams } = searchParams;
     const p = page ? parseInt(page) : 1;
 
@@ -79,6 +88,20 @@ const AnnoucementListPage = async({ searchParams,
     }
 
 
+    //ROLE CONDTIONS 
+        //  ROLE CONDITIONS 
+        const roleConditions = {
+            teacher: { lessons: { some: { teacherId: currentUserId! } } },
+            student: { students: { some: { id: currentUserId! } } },
+            parent: { students: { some: { parentId: currentUserId! } } },
+        }
+
+        if (role !== "admin") {
+            query.OR = [
+                { classId: null },
+                { class: roleConditions[role as keyof typeof roleConditions] || {} }
+            ];
+        }
     // data fetching for the the events
     const [data, count] = await prisma.$transaction([
         prisma.announcement.findMany({
@@ -93,7 +116,7 @@ const AnnoucementListPage = async({ searchParams,
     ])
 
 
-
+    // return component
     return (
         <div className='bg-white p-4  rounded-md flex-1 m-4 mt-0'>
             {/* TOP SECTION  */}

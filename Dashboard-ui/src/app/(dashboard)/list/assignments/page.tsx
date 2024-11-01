@@ -3,11 +3,11 @@ import React from 'react'
 import Image from 'next/image';
 import Pagination from '@/components/Pagination';
 import Table from '@/components/Table';
-import { assignmentsData, role } from '@/lib/data';
 import FormModal from '@/components/FormModal';
 import { Assignment, Class, Prisma, Subject, Teacher } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { ITEM_PERR_PAGE } from '@/lib/settings';
+import { auth } from '@clerk/nextjs/server';
 
 
 
@@ -20,76 +20,86 @@ type AssignmentList = Assignment & {
 }
 
 
-const columns = [
-    {
-        header: 'Subject Name',
-        accessor: "name",
-    },
-    {
-        header: 'Class',
-        accessor: "class",
-
-    },
-    {
-        header: "Teacher",
-        accessor: "teacher",
-        className: "hidden lg:table-cell"
-    },
-    {
-        header: "Due Date",
-        accessor: "due date",
-        className: "hidden lg:table-cell"
-    },
-    {
-        header: 'Actions',
-        accessor: "action"
-    }
-];
-
-
-
-const renderRow = (item: AssignmentList) => (
-    <tr key={item.id} className='border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purpleLight'>
-        <td className='flex items-center gap-4 p-4'>{item.lesson.subject.name}</td>
-        <td>{item.lesson.class.name}</td>
-        <td className='hidden md:table-cell'>{item.lesson.teacher.name + " " + item.lesson.teacher.name}</td>
-        <td className='hidden md:table-cell'>{new Intl.DateTimeFormat("en-us").format(item.dueDate)}</td>
-
-
-        <div className=' flex items-center gap-2'>
-
-            {role === "admin" && (
-                <>
-                    <FormModal table='assignment' type='update' data={item} />
-                    <FormModal table='assignment' type='delete' id={item.id} />
-                </>
-            )}
-
-        </div>
-    </tr>
-)
-
-
-
 const AssignmentListPage = async ({ searchParams
 }: {
     searchParams: { [key: string]: string | undefined };
 }) => {
+
+    // FETCH THE USER ROLE 
+    const { userId, sessionClaims } = await auth();
+    const role = (sessionClaims?.metadata as { role?: string })?.role;
+    const curretUserId = userId;
+    // All the columns 
+    const columns = [
+        {
+            header: 'Subject Name',
+            accessor: "name",
+        },
+        {
+            header: 'Class',
+            accessor: "class",
+
+        },
+        {
+            header: "Teacher",
+            accessor: "teacher",
+            className: "hidden lg:table-cell"
+        },
+        {
+            header: "Due Date",
+            accessor: "due date",
+            className: "hidden lg:table-cell"
+        },
+        ...((role === "admin" || role === "teacher") ? [{
+            header: 'Actions',
+            accessor: "action"
+        }] : [])
+    ];
+
+    // render Row Funtion
+
+    const renderRow = (item: AssignmentList) => (
+        <tr key={item.id} className='border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purpleLight'>
+            <td className='flex items-center gap-4 p-4'>{item.lesson.subject.name}</td>
+            <td>{item.lesson.class.name}</td>
+            <td className='hidden md:table-cell'>{item.lesson.teacher.name + " " + item.lesson.teacher.name}</td>
+            <td className='hidden md:table-cell'>{new Intl.DateTimeFormat("en-us").format(item.dueDate)}</td>
+
+
+            <div className=' flex items-center gap-2'>
+
+                {(role === "admin" || role === "teacher") && (
+                    <>
+                        <FormModal table='assignment' type='update' data={item} />
+                        <FormModal table='assignment' type='delete' id={item.id} />
+                    </>
+                )}
+
+            </div>
+        </tr>
+    )
+
+
+    // Fetch the data 
     const { page, ...queryParams } = searchParams;
     const p = page ? parseInt(page) : 1;
 
     const query: Prisma.AssignmentWhereInput = {};
 
+    // DEFINE LESSON QUERY TYPES
+    query.lesson = {};
+
+    //  URL PARAMS CONDIIONS 
     if (queryParams) {
         for (const [key, value] of Object.entries(queryParams)) {
             if (value != undefined) {
                 switch (key) {
                     case "classId":
-                        query.lesson = { classId: parseInt(value) };
+                        query.lesson.classId = parseInt(value);
                         break;
 
                     case "teacherId":
-                        query.lesson = { teacherId: value };
+                        query.lesson.teacherId = value;
                         break;
 
                     case "search":
@@ -116,6 +126,39 @@ const AssignmentListPage = async ({ searchParams
                 }
             }
         }
+    }
+
+    // ROLE CONDITIONS
+    switch (role) {
+        case "admin":
+            break;
+        case "teacher":
+            query.lesson.teacherId = curretUserId!;
+            break;
+
+        case "student":
+            query.lesson.class = {
+                students: {
+                    some: {
+                        id: curretUserId!,
+                    }
+                }
+            }
+            break;
+
+        case "parent":
+            query.lesson.class = {
+                students: {
+                    some: {
+                        parentId: curretUserId!,
+                    }
+                }
+            }
+            break;
+
+        default:
+            break;
+
     }
 
     const [data, count] = await prisma.$transaction([
