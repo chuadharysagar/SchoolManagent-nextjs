@@ -4,18 +4,28 @@ import Image from 'next/image';
 import Pagination from '@/components/Pagination';
 import Table from '@/components/Table';
 import Link from 'next/link';
-import { role } from '@/lib/data';
 import FormModal from '@/components/FormModal';
 import { Class, Prisma, Student } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { ITEM_PERR_PAGE } from '@/lib/settings';
+import { auth } from '@clerk/nextjs/server';
 
 
 //get the type from the db 
 type StudentList = Student & { class: Class }
 
 
-const columns = [
+
+
+
+const StudentListPage = async ({ searchParams
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) => {
+  const{sessionClaims} = await auth();
+  const role = (sessionClaims?.metadata as {role?:string})?.role;
+
+  const columns = [
   {
     header: 'Info',
     accessor: "info"
@@ -47,6 +57,7 @@ const columns = [
 ];
 
 
+// render row funnction
 const renderRow = (item: StudentList) => (
   <tr key={item.id} className='border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purpleLight'>
     <td className='flex items-center gap-4 p-4'>
@@ -86,13 +97,6 @@ const renderRow = (item: StudentList) => (
     </td>
   </tr>
 );
-
-
-
-const StudentListPage = async ({ searchParams
-}: {
-  searchParams: { [key: string]: string | undefined };
-}) => {
 
   //taking the page param from seastudentsDatarchparams for pagination
   const { page, ...queryParams } = searchParams;

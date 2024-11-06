@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import InputFeild from '../InputFeild'
 import Image from 'next/image'
+import { CldUploadWidget } from 'next-cloudinary'
 
 const schema = z.object({
     username: z
@@ -129,20 +130,16 @@ const TeacherForm = ({ type, data }: { type: "create" | "update"; data?: any }) 
                     {errors.sex?.message &&
                         <p className='text-xs text-red-400'> {errors.sex.message.toString()}</p>}
                 </div>
-
-                <div className='flex flex-col gap-2 w-full md:w-1/4 justify-center'>
-                    <label className='text-xs text-gray-500 flex items-center gap-2 cursor-pointer'
-                        htmlFor='img'>
-                        <Image src="/upload.png" alt='upload image' height={28} width={28} />
-                        <span>Upload a photo</span>
-                    </label>
-                    <input type="file" {...register("img")} id='img' className='hidden' />
-
-                    {errors.img?.message &&
-                        <p className='text-xs text-red-400'> {errors.img.message.toString()}</p>}
-                </div>
+                <CldUploadWidget>
+                    {({ open }) => {
+                        return <div className='text-xs text-gray-500 flex items-center gap-2 cursor-pointer'>
+                            <Image src="/upload.png" alt='upload image' height={28} width={28} />
+                            <span>Upload a photo</span>
+                        </div>
+                    }
+                    }
+                </CldUploadWidget>
             </div>
-
             <button className='bg-blue-400 text-white p-2 rounded-md'>{type === "create" ? "Create" : "Update"}</button>
         </form>
     )

@@ -8,6 +8,7 @@ import { Class, Prisma, Teacher } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { ITEM_PERR_PAGE } from '@/lib/settings';
 import { auth } from '@clerk/nextjs/server';
+import FormContainer from '@/components/FormContainer';
 
 
 type ClassList = Class & { supervisor: Teacher }
@@ -69,8 +70,8 @@ const ClassListPage = async ({ searchParams
             <div className=' flex items-center gap-2'>
                 {role === "admin" && (
                     <>
-                        <FormModal table='class' type='update' data={item} />
-                        <FormModal table='class' type='delete' id={item.id} />
+                        <FormContainer table='class' type='update' data={item} />
+                        <FormContainer table='class' type='delete' id={item.id} />
                     </>
 
                 )}
@@ -141,7 +142,7 @@ const ClassListPage = async ({ searchParams
                         </button>
 
                         {role === 'admin' && (
-                            <FormModal table='class' type='create' />
+                            <FormContainer table='class' type='create' />
                         )}
                     </div>
                 </div>
